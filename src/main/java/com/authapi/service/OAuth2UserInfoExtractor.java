@@ -73,10 +73,14 @@ public class OAuth2UserInfoExtractor {
         Map<String, Object> attrs = user.getAttributes();
 
         String picture = "";
-        if (attrs.get("picture") instanceof Map<?, ?> pictureMap) {
+        Object pictureObj = attrs.get("picture");
+        if (pictureObj instanceof Map) {
+            Map<String, Object> pictureMap = (Map<String, Object>) pictureObj;
             Object data = pictureMap.get("data");
-            if (data instanceof Map<?, ?> dataMap) {
-                picture = String.valueOf(dataMap.getOrDefault("url", ""));
+            if (data instanceof Map) {
+                Map<String, Object> dataMap = (Map<String, Object>) data;
+                Object url = dataMap.get("url");
+                picture = url != null ? url.toString() : "";
             }
         }
 

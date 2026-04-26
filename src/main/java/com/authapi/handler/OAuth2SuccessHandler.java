@@ -1,5 +1,6 @@
 package com.authapi.handler;
 
+import com.authapi.config.AppProperties;
 import com.authapi.model.UserInfo;
 import com.authapi.service.JwtService;
 import com.authapi.service.OAuth2UserInfoExtractor;
@@ -7,7 +8,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -30,9 +30,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     private final JwtService jwtService;
     private final OAuth2UserInfoExtractor userInfoExtractor;
-
-    @Value("${app.allowed-redirect-uris}")
-    private List<String> allowedRedirectUris;
+    private final AppProperties appProperties;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -53,7 +51,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // Get the redirect URI the client app originally requested (stored in session)
         String redirectUri = getRedirectUri(request);
 
-        // Security: validate the redirect URI is in our whitelist
         if (!isAllowedRedirectUri(redirectUri)) {
             log.warn("Blocked redirect to non-whitelisted URI: {}", redirectUri);
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Redirect URI not allowed");
@@ -81,14 +78,14 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             request.getSession().removeAttribute("redirect_uri");
             return sessionRedirect.toString();
         }
-        // Fallback to first allowed URI
-        return allowedRedirectUris.isEmpty() ? "/" : allowedRedirectUris.get(0);
+        List<String> allowedRedirectUris = appProperties.getAllowedRedirectUris();
+        return allowedRedirectUris == null || allowedRedirectUris.isEmpty() ? "/" : allowedRedirectUris.get(0);
     }
 
     private boolean isAllowedRedirectUri(String redirectUri) {
         try {
             URI uri = URI.create(redirectUri);
-            return allowedRedirectUris.stream().anyMatch(allowed -> {
+            return appProperties.getAllowedRedirectUris().stream().anyMatch(allowed -> {
                 try {
                     URI allowedUri = URI.create(allowed);
                     return allowedUri.getHost().equalsIgnoreCase(uri.getHost())

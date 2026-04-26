@@ -13,6 +13,7 @@ target/
 # Secrets — never commit real credentials
 application-prod.yml
 application-local.yml
+application-local*.yml
 .env
 
 # OS
