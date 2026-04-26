@@ -1,0 +1,51 @@
+server:
+  port: 8080
+
+app:
+  jwt:
+    # Change this to a strong random secret in production (min 32 chars)
+    secret: "your-super-secret-jwt-key-change-this-in-production-min-32-chars"
+    expiration-ms: 86400000 # 24 hours
+
+  # Allowed redirect URIs from client apps (whitelist for security)
+  allowed-redirect-uris:
+    - "http://localhost:3000/callback"
+    - "http://localhost:5173/callback"
+    - "https://yourclientapp.com/callback"
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+
+          # --- GOOGLE ---
+          google:
+            client-id: YOUR_GOOGLE_CLIENT_ID
+            client-secret: YOUR_GOOGLE_CLIENT_SECRET
+            scope:
+              - email
+              - profile
+
+          # --- GITHUB ---
+          github:
+            client-id: YOUR_GITHUB_CLIENT_ID
+            client-secret: YOUR_GITHUB_CLIENT_SECRET
+            scope:
+              - user:email
+              - read:user
+
+          # --- FACEBOOK ---
+          facebook:
+            client-id: YOUR_FACEBOOK_APP_ID
+            client-secret: YOUR_FACEBOOK_APP_SECRET
+            scope:
+              - email
+              - public_profile
+            # Facebook requires explicit fields
+            user-info-uri: https://graph.facebook.com/me?fields=id,name,email,picture
+
+logging:
+  level:
+    com.authapi: DEBUG
+    org.springframework.security: INFO
